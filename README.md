@@ -36,7 +36,7 @@ If you do not have access to Covid-19 patient data, you can perform predictions 
   * Cumulative Distribution Function (CDF) for time at hospital
   
  
-### multiple_patient_prediction.Rmd
+### [multiple_patient_prediction.Rmd](./multiple_patient_prediction.html)
   This notebook provides an aggregate view of the future for any set of patients. These could be all patients in a certain hospital, ward or even an entire country.
   
   * Expected number of deaths over time
