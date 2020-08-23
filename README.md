@@ -25,7 +25,7 @@ If you do not have access to Covid-19 patient data, you can perform predictions 
 
 **Note:** We strongly encourage using a model which was fit to data that is as close as possible to your own setting, ideally: recent data from the same hospital. Even among Israeli hospitals there was weak generalization among certain hospitals.
 
-### single_patient_prediction.Rmd
+### [single_patient_prediction.Rmd](single_patient_prediction.html)
 
   This notebook shows how to  estimate the following values, for a single patient: 
   
