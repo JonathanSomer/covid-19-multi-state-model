@@ -1,6 +1,6 @@
 ---
 title: "Multi-State Model First Example"
-output: html_document
+output: md_document
 ---
 ```{r include=FALSE}
 source('./utils/first_example_utils.R')
