@@ -1,0 +1,194 @@
+---
+title: "Multiple Patient Prediction"
+output: html_document
+---
+
+
+```{r include=FALSE}
+source('./utils/utils.R')
+source('./utils/multiple_patient_prediction_utils.R')
+source('./model/israeli_multi_state_competing_risks_model.R')
+library(ggplot2)
+library(formattable)
+
+set.seed(42)
+
+```
+
+# Introduction
+
+This notebook provides a running example for predicting the following for a set of currently hospitalized patients:
+
+1. The number of hospitalized patients per day
+2. The number of patients in the Severe state (named "Critical" in the paper) 
+3. The number of deceased patients per 5 day block
+
+We also show how you could test different future scenarios by providing a set of future hospitalizations. 
+
+
+# Initializations:
+
+### Load pre-fit model:
+
+```{r}
+load('./cache/multiple_patient_prediction_model.Rdata')
+```
+
+### Set Monte Carlo Parameters
+
+```{r}
+# the number of simulated runs per patient, 10K is our recommendation
+N_MONTE_CARLO_RUNS = 100#*1000
+
+# the maximum number of transitions in the Multi-State model
+# this is used to exclude outlier paths with more transitions than
+# the maximal number of transitions observed in the data
+MAX_PATH_LENGTH = 9 
+```
+
+
+### Define `T`: the day from which we predict
+
+```{r}
+T = Sys.Date() # use the date of today
+PREDICT_N_DAYS_AHEAD = 30 # predict one month ahead
+```
+
+
+# Load Hospitalized Patient Data:
+
+In this example we generate random data, but you can use your own data by reading a dataframe which complies with the following conventions:
+
+1. `sex`: MALE (1), FEMALE (0)
+2. `age`: in years
+3. `state_at_hospitalization`: either MILD (2), MODERATE (3) or SEVERE (4). Note, these correspond with the states MODERATE, SEVERE, CRITICAL which are used in the paper
+4. `date_of_hospitalization`: date in the format 'yyyy-mm-dd'
+5. `current_state`: same values as 3 above
+6. `days_spent_in_current_state`: non-negative integer
+7. `was_severe`: Binary indicator. Visited severe state at least once before entering the current state (1), or not (0)
+
+
+```{r}
+hospitalized_patients_df = generate_random_hospitalized_patients_df(n_hospitalized_patients = 30,
+                                                                    T = T,
+                                                                    PREDICT_N_DAYS_AHEAD = PREDICT_N_DAYS_AHEAD)
+
+# alternatively:
+# hospitalized_patients_df = read.csv('PATH TO YOUR PATIENT DATA CSV')
+
+formattable(head(hospitalized_patients_df, n=5))
+```
+
+### Convert Table into the Format Acceptable by the Model:
+
+```{r}
+hospitalized_patients = lapply(1:nrow(hospitalized_patients_df), function(row_idx) {
+  
+  row = hospitalized_patients_df[row_idx,]
+  
+  construct_patient_object(
+    sex = row$sex, 
+    age = row$age, 
+    state_at_hospitalization = row$state_at_hospitalization,
+    date_of_hospitalization = row$date_of_hospitalization,
+    current_state = row$current_state,
+    days_spent_in_current_state = row$days_spent_in_current_state,
+    was_severe  = row$was_severe,
+    T=T
+  )
+})
+```
+
+
+## Generate a Random Set of Future Arrivals:
+
+```{r}
+future_arrival_patients_df = generate_future_arrival_patients_df(n_future_arrivals = 100,
+                                                                 T = T,
+                                                                 PREDICT_N_DAYS_AHEAD = PREDICT_N_DAYS_AHEAD)
+
+# alternatively:
+# future_arrival_patients_df = read.csv('PATH TO YOUR FUTURE ARRIVAL SCENARIO CSV')
+
+formattable(head(future_arrival_patients_df, n=5))
+```
+
+```{r}
+future_arrival_patients = lapply(1:nrow(future_arrival_patients_df), function(row_idx) {
+  
+  row = future_arrival_patients_df[row_idx, ]
+  
+  construct_future_arrival_patient_object(
+    sex = row$sex,
+    age = row$age,
+    state_at_hospitalization = row$state_at_hospitalization,
+    date_of_hospitalization = row$date_of_hospitalization
+  )  
+})
+```
+
+
+### Merge the two lists of patients, and perform a monte carlo simulation per patient
+
+```{r}
+INCLUDE_FUTURE_ARRIVAL_PATIENTS = TRUE
+```
+
+
+```{r}
+all_patients = hospitalized_patients
+if (INCLUDE_FUTURE_ARRIVAL_PATIENTS) all_patients = append(all_patients, 
+                                                           future_arrival_patients)  
+
+
+all_patients = run_monte_carlo_per_patient(all_patients, 
+                                           N_MONTE_CARLO_RUNS, 
+                                           MAX_PATH_LENGTH)
+```
+
+# Plot the number of hospitalized patients per day 
+
+The plot below displays the mean number of hospitalized patients, over all monte carlo simulations. 
+
+For each day, the range between the lower and upper quantiles is filled in red. In the example below we display the 25 and 75 percentiles. 
+
+```{r echo=FALSE}
+plot_expected_number_of_patients_each_day(all_patients,
+                                          first_date = T,
+                                          last_date = T + PREDICT_N_DAYS_AHEAD,
+                                          states_to_include = c(SEVERE, MILD_OR_MODERATE), # all "hospitalized" states
+                                          lower_quantile = 0.25,
+                                          upper_quantile = 0.75)
+
+```
+
+
+# Plot the number of patients hospitalized at SEVERE state per day 
+
+The plot below displays the mean number of hospitalized patients **in the SEVERE state** (named Critical in the paper), over all monte carlo simulations. 
+
+For each day, the range between the lower and upper quantiles is filled in red. In the example below we display the 25 and 75 percentiles.
+
+```{r}
+plot_expected_number_of_patients_each_day(all_patients,
+                                          first_date = T,
+                                          last_date = T + PREDICT_N_DAYS_AHEAD,
+                                          states_to_include = c(SEVERE),
+                                          lower_quantile = 0.25,
+                                          upper_quantile = 0.75)
+
+```
+
+
+
+# Expected Number of Deaths
+
+
+```{r}
+formattable(construct_expected_deaths_table(all_patients, 
+                                            T, 
+                                            PREDICT_N_DAYS_AHEAD))
+```
+
+
+# 
