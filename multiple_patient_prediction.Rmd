@@ -38,7 +38,7 @@ load('./cache/multiple_patient_prediction_model.Rdata')
 
 ```{r}
 # the number of simulated runs per patient, 10K is our recommendation
-N_MONTE_CARLO_RUNS = 100#*1000
+N_MONTE_CARLO_RUNS = 10*1000
 
 # the maximum number of transitions in the Multi-State model
 # this is used to exclude outlier paths with more transitions than
