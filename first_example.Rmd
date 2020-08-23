@@ -1,6 +1,6 @@
 ---
 title: "Multi-State Model First Example"
-output: md_document
+output: html_document
 ---
 ```{r include=FALSE}
 source('./utils/first_example_utils.R')
@@ -36,7 +36,7 @@ Patients start at state 1, state 3 shall be a terminal state and states 1,2 shal
 
 2. With probability 1/2 you transition to state 2 or 1 (depending on the present state), within $t\sim\text{exp}(\lambda)$
 
-![A simple Multi-State Model](./toy_setting.png){#id .class width=50% height=50%}
+![A simple Multi-State Model](./static/toy_setting.png){#id .class width=50% height=50%}
 
 For this setting, one can show that the expected time until reaching a terminal state is $1+\frac{1}{\lambda}$ (see proof at the end of this notebook.)
 
