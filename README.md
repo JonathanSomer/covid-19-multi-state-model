@@ -12,7 +12,7 @@ Each notebook has a corresponding pre-rendered html file with the same name as t
 
 ## 1. Introducing The Model
 
-### [first_example.Rmd](./first_example.html)
+### [first_example.Rmd](./first_example.Rmd)
 
 This notebook provides a simple working example, while introducing the basic components of the model and dataset used to fit the model. 
 
@@ -25,7 +25,7 @@ If you do not have access to Covid-19 patient data, you can perform predictions 
 
 **Note:** We strongly encourage using a model which was fit to data that is as close as possible to your own setting, ideally: recent data from the same hospital. Even among Israeli hospitals there was weak generalization among certain hospitals.
 
-### [single_patient_prediction.Rmd](./single_patient_prediction.html)
+### [single_patient_prediction.Rmd](./single_patient_prediction.Rmd)
 
   This notebook shows how to  estimate the following values, for a single patient: 
   
@@ -36,7 +36,7 @@ If you do not have access to Covid-19 patient data, you can perform predictions 
   * Cumulative Distribution Function (CDF) for time at hospital
   
  
-### [multiple_patient_prediction.Rmd](./multiple_patient_prediction.html)
+### [multiple_patient_prediction.Rmd](./multiple_patient_prediction.Rmd)
   This notebook provides an aggregate view of the future for any set of patients. These could be all patients in a certain hospital, ward or even an entire country.
   
   * Expected number of deaths over time
