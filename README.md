@@ -42,11 +42,7 @@ If you do not have access to Covid-19 patient data, you can perform predictions 
   
  
 ### [multiple_patient_prediction.Rmd](./multiple_patient_prediction.Rmd)
-<<<<<<< HEAD
   This notebook provides an aggregate view of the future for any set of patients. These could be all patients in a certain hospital, ward or even an entire country. Specifically, we provide:
-=======
-  This notebook provides an aggregate view of the future for any set of patients. These could be all patients in a certain hospital, ward or even an entire country.
->>>>>>> a37227e583a58a3b613d0149e571c12a311f6972
   
   * The expected number of deaths over time
   * The expected number of hospitalized patients over time
