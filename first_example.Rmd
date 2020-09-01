@@ -9,7 +9,6 @@ set.seed(442)
 ```
 
 
-
 # This Notebook
 
 This notebook provides a simple setting which illustrates basic usage of the model. 
@@ -191,7 +190,7 @@ By following this process you can fit the model to any such dataset and make pre
 
 
 
-### Appendix 1: Proof that the expected time until reaching the terminal state is $1 + \frac{1}{\lambda}$
+### Appendix 1: Demonstrating that the expected time until reaching the terminal state is $1 + \frac{1}{\lambda}$
 
 
 Let $T$ be the random variable denoting the time until reaching the terminal state #3, and let $S_2$ be the random variable denoting the second state visited by the sample (recall all patients start at state 1, that is: $S_1=1$)

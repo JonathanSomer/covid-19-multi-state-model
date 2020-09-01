@@ -216,13 +216,10 @@ run_monte_carlo_per_patient = function(patients, N_MONTE_CARLO_RUNS, MAX_PATH_LE
 }
 
 
-
 plot_expected_number_of_patients_each_day = function(patients, # make sure to run: patients = run_monte_carlo_per_patient(patients)
                                                      first_date,
                                                      last_date,
-                                                     states_to_include = c(SEVERE, MILD_OR_MODERATE), # default is all "hospitalized" states
-                                                     lower_quantile = 0.25,
-                                                     upper_quantile = 0.75
+                                                     states_to_include = c(SEVERE, MILD_OR_MODERATE) # default is all "hospitalized" states
 ) {
   
   n_hospitalized_per_run_matrix = construct_n_hospitalized_per_run_matrix(patients,
@@ -232,20 +229,29 @@ plot_expected_number_of_patients_each_day = function(patients, # make sure to ru
                                                                           count_states=states_to_include)
   
   estimated_mean_n_hospitalized = sapply(n_hospitalized_per_run_matrix, mean)
-  estimated_lower_q_n_hospitalized =  sapply(n_hospitalized_per_run_matrix, function(col) quantile(col, probs=lower_quantile))
-  estimated_upper_q_n_hospitalized =  sapply(n_hospitalized_per_run_matrix, function(col) quantile(col, probs=upper_quantile))
+  
+  estimated_q75_n_hospitalized =  sapply(n_hospitalized_per_run_matrix, function(col) quantile(col, probs=0.75))
+  estimated_q25_n_hospitalized =  sapply(n_hospitalized_per_run_matrix, function(col) quantile(col, probs=0.25))
+  
+  estimated_q90_n_hospitalized =  sapply(n_hospitalized_per_run_matrix, function(col) quantile(col, probs=0.9))
+  estimated_q10_n_hospitalized =  sapply(n_hospitalized_per_run_matrix, function(col) quantile(col, probs=0.1))
   
   
   dates = dates_between(first_date, last_date)
   
   df = data.frame(mean = estimated_mean_n_hospitalized,
-                  lower_quantile = estimated_lower_q_n_hospitalized,
-                  upper_quantile = estimated_upper_q_n_hospitalized,
+                  estimated_q75_n_hospitalized = estimated_q75_n_hospitalized,
+                  estimated_q25_n_hospitalized = estimated_q25_n_hospitalized,
+                  
+                  estimated_q90_n_hospitalized = estimated_q90_n_hospitalized,
+                  estimated_q10_n_hospitalized = estimated_q10_n_hospitalized,
+                  
                   date=dates,
                   metric=rep('n patients', length(dates)))
   
-  ggplot(df, aes(date, mean, fill=metric)) +
-    geom_crossbar(aes(ymin=lower_quantile, ymax=upper_quantile), show.legend = FALSE) +
+  ggplot(df, aes(date, mean)) +
+    geom_crossbar(aes(ymin=estimated_q10_n_hospitalized, ymax=estimated_q90_n_hospitalized), show.legend = FALSE, fill="#eaac8b") +
+    geom_crossbar(aes(ymin=estimated_q25_n_hospitalized, ymax=estimated_q75_n_hospitalized), show.legend = FALSE, fill="#e56b6f") +
     # ggtitle('n Hospitalized Patients Per Day') +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     ylab("n patients")  
@@ -351,3 +357,41 @@ construct_expected_deaths_table = function(patients, T, PREDICT_N_DAYS_AHEAD){
                     expected_number_of_deaths_in_last_5_days = diff(c(0,as.numeric(expected_cumulative_number_of_deaths)))))
 }
 
+
+
+
+# Below you can see the expected proportion of deaths by days since hospitalization. 
+# That is, we are counting deaths among all patients 5 days since hospitalization, 10 days hospitalization etc.; averaging over all sampled monte carlo paths.
+expected_deaths_by_days_since_hospitalization = function(patients, T, PREDICT_N_DAYS_AHEAD) {
+  
+  expected_deaths_df = data.frame(days_since_hospitalization = seq(5, PREDICT_N_DAYS_AHEAD, by=5))
+  expected_deaths = c()
+  
+  for (n_days in expected_deaths_df$days_since_hospitalization) {
+    
+    number_of_deaths_before_n_days_since_hospitalization_per_run = sapply(1:N_MONTE_CARLO_RUNS, function(run_i) {
+      
+      # count the number of patients dead by n_days in run_i
+      number_of_deaths_before_n_days_since_hospitalization = sum(sapply(patients, function(patient) {
+        
+        patient_run_i = patient$all_runs[[run_i]]
+        time_of_run = sum(patient_run_i$time_at_each_state)
+        
+        patient_dies_before_n_days = DECEASED %in% patient_run_i$states && # patient dies
+          time_of_run < n_days && # dies within n_days
+          patient$date_of_hospitalization + time_of_run < T + PREDICT_N_DAYS_AHEAD # dies within prediction period
+        
+        return(patient_dies_before_n_days)
+      }))
+      
+      return(number_of_deaths_before_n_days_since_hospitalization)
+    })
+    
+    expected_deaths_by_n_days = sum(number_of_deaths_before_n_days_since_hospitalization_per_run) / N_MONTE_CARLO_RUNS
+    expected_deaths = c(expected_deaths, expected_deaths_by_n_days)
+  }
+  
+  expected_deaths_df$n_expected_deaths = as.vector(expected_deaths)
+  expected_deaths_df$expected_proportion_of_deaths = as.vector(expected_deaths) / length(patients)
+  return(expected_deaths_df)
+}

@@ -524,8 +524,8 @@ model = MultiStateModel()</code></pre>
 <h1>Conclusion</h1>
 <p>This notebook provides a simple example usage of the multi-state model, beginning with the structure of the dataset used to fit the model and up to a simple analysis of the model’s predictions.</p>
 <p>By following this process you can fit the model to any such dataset and make predictions</p>
-<div id="appendix-1-proof-that-the-expected-time-until-reaching-the-terminal-state-is-1-frac1lambda" class="section level3">
-<h3>Appendix 1: Proof that the expected time until reaching the terminal state is <span class="math inline">\(1 + \frac{1}{\lambda}\)</span></h3>
+<div id="appendix-1-demonstrating-that-the-expected-time-until-reaching-the-terminal-state-is-1-frac1lambda" class="section level3">
+<h3>Appendix 1: Demonstrating that the expected time until reaching the terminal state is <span class="math inline">\(1 + \frac{1}{\lambda}\)</span></h3>
 <p>Let <span class="math inline">\(T\)</span> be the random variable denoting the time until reaching the terminal state #3, and let <span class="math inline">\(S_2\)</span> be the random variable denoting the second state visited by the sample (recall all patients start at state 1, that is: <span class="math inline">\(S_1=1\)</span>)</p>
 <p>From the law of total expectation: <span class="math display">\[E[T]=E[E[T|S_2]]=P(S_2=3) \cdot E[T|S_2=3] + P(S_2=2) \cdot E[T|S_2=2]\]</span></p>
 <p>Denote <span class="math inline">\(T=T_1 + T_{2^+}\)</span> (“The total time is the sum of the time of the first transition plus the time from arrival to the second state onwards”). Then:</p>

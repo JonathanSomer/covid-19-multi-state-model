@@ -371,17 +371,18 @@ summary {
 <p>This notebook provides a running example of estimating the following values, for a single patient:</p>
 <ul>
 <li>probability of death</li>
-<li>probability of future severe state</li>
+<li>probability of future visit to critical state</li>
 <li>quantiles of predicted time in hospital</li>
-<li>quantiles of predicted time in severe state</li>
-<li>Cumulative Distribution Function (CDF) for time at hospital</li>
+<li>quantiles of predicted time in critical state</li>
+<li>Cumulative Distribution Function (CDF) for remaining time at hospital</li>
 </ul>
+<p><strong>Note:</strong> In the code, the constants denoting the states are named <code>MILD</code>, <code>MODERATE</code> and <code>SEVERE</code>. In the paper these constants correspond with the states named Moderate, Severe and Critical, respectively.</p>
 </div>
 <div id="follow-these-steps" class="section level1">
 <h1>Follow These Steps:</h1>
 <div id="define-patient-covariates" class="section level2">
 <h2>1. Define Patient Covariates:</h2>
-<p>We shall provide estimates for a 55 year old male hospitalized in a severe condition. Predictions below are done from time of hospitalization but estimates can be predicted from any time since hospitalization.</p>
+<p>We shall provide estimates for a 55 year old male hospitalized in a critical condition. Predictions below are done from time of hospitalization but estimates can be predicted from any time since hospitalization.</p>
 <div id="sex" class="section level3">
 <h3>Sex</h3>
 <p>Either <code>MALE</code> of <code>FEMALE</code></p>
@@ -426,9 +427,9 @@ summary {
                                    days_at_current_state</code></pre>
 </div>
 <div id="indicator-variable-for-previous-visit-to-severe-state" class="section level3">
-<h3>Indicator Variable for Previous Visit to Severe State:</h3>
-<p>A binary 0/1 indicator of a <strong>past</strong> visit to the SEVERE state (In the paper: “Critical”). 1 indicates there was such a visit.</p>
-<p>Note: if the patient was hospitalized in SEVERE state, the indicator should initially be 0, as there was no <strong>past</strong> visit to the SEVERE state.</p>
+<h3>Indicator Variable for Previous Visit to <code>SEVERE</code> State:</h3>
+<p>A binary 0/1 indicator of a <strong>past</strong> visit to the <code>SEVERE</code> state (In the paper: “Critical”). 1 indicates there was such a visit.</p>
+<p>Note: if the patient was hospitalized in <code>SEVERE</code> state, the indicator should initially be 0, as there was no <strong>past</strong> visit to the <code>SEVERE</code> state.</p>
 <pre class="r"><code>was_severe = 0</code></pre>
 </div>
 <div id="construct-the-covariates" class="section level3">
@@ -442,7 +443,8 @@ summary {
 </div>
 <div id="decide-if-you-wish-to-compute-confidence-intervals" class="section level2">
 <h2>2. Decide if you wish to compute confidence intervals</h2>
-<p>(This is computed using a weighted bootstrap based on 100 models, i.e 100 models each running 20K monte carlo simulations. This is slow and is recommended primarily in order to understand the quality of esimations. A faster alternative is look at the tables provided in with the paper.)</p>
+<p>This notebook computes 95% confidence intervals for the estimates listed above. Intervals are estimated using a weighted bootstrap based on 100 models, i.e 100 models each running 20K monte carlo simulations. This can be relatively slow.</p>
+<p>Note: For estimates of the different quantiles of hospitalization time remaining and time remaining in a critical state, in estimates of extreme quantiles, coverage could possibly differ from 95%.</p>
 <pre class="r"><code>COMPUTE_CONFIDENCE_INTERVALS = FALSE</code></pre>
 </div>
 <div id="set-monte-carlo-paramaters" class="section level2">
@@ -475,6 +477,7 @@ if (COMPUTE_CONFIDENCE_INTERVALS) {
                                             M_MONTE_CARLO_PATHS, 
                                             MAX_TRANSITIONS)
   
+  estimates[&quot;Standard Deviation&quot;] = as.numeric(bootstrap_sd)
   estimates[&quot;95%-lower&quot;] = estimates$estimate - 1.96*as.numeric(bootstrap_sd)
   estimates[&quot;95%-upper&quot;] = estimates$estimate + 1.96*as.numeric(bootstrap_sd)
 }</code></pre>

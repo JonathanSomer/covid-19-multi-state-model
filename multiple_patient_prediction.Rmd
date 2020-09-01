@@ -19,11 +19,11 @@ set.seed(42)
 
 This notebook provides a running example for predicting the following for a set of currently hospitalized patients:
 
-1. The number of hospitalized patients per day
-2. The number of patients in the Severe state (named "Critical" in the paper) 
-3. The number of deceased patients per 5 day block
+1. The expected number of hospitalized patients per day.
+2. The expected number of patients in a Critical state (named "Critical" in the paper, but `SEVERE` in code).
+3. The expected number of deceased patients by days since hospitalization, in 5 day intervals.
 
-We also show how you could test different future scenarios by providing a set of future hospitalizations. 
+We also show how you could test different future scenarios by loading a set of future hospitalizations you defined. 
 
 
 # Initializations:
@@ -57,15 +57,17 @@ PREDICT_N_DAYS_AHEAD = 30 # predict one month ahead
 
 # Load Hospitalized Patient Data:
 
-In this example we generate random data, but you can use your own data by reading a dataframe which complies with the following conventions:
+In this example we generate **random stub data**, but you can use your own data by reading a dataframe which complies with the following conventions:
 
 1. `sex`: MALE (1), FEMALE (0)
 2. `age`: in years
-3. `state_at_hospitalization`: either MILD (2), MODERATE (3) or SEVERE (4). Note, these correspond with the states MODERATE, SEVERE, CRITICAL which are used in the paper
+3. `state_at_hospitalization`: either `MILD` (2), `MODERATE` (3) or `SEVERE` (4). Note, these correspond with the states Moderate, Severe, Critical which are used in the paper
 4. `date_of_hospitalization`: date in the format 'yyyy-mm-dd'
 5. `current_state`: same values as 3 above
 6. `days_spent_in_current_state`: non-negative integer
 7. `was_severe`: Binary indicator. Visited severe state at least once before entering the current state (1), or not (0)
+
+**Note:** The data generated here is not intended to reflect any true distribution of patients but only serves as an example of the needed data **format**. Do not base predictions on this stub data.
 
 
 ```{r}
@@ -100,7 +102,9 @@ hospitalized_patients = lapply(1:nrow(hospitalized_patients_df), function(row_id
 ```
 
 
-## Generate a Random Set of Future Arrivals:
+## Load Future Arrival Data:
+
+**Note:** The stub data generated here is not intended to reflect any true distribution of patients but only serves as an example of the needed data **format**. Do not base predictions on this stub data.
 
 ```{r}
 future_arrival_patients_df = generate_future_arrival_patients_df(n_future_arrivals = 100,
@@ -138,7 +142,7 @@ INCLUDE_FUTURE_ARRIVAL_PATIENTS = TRUE
 ```{r}
 all_patients = hospitalized_patients
 if (INCLUDE_FUTURE_ARRIVAL_PATIENTS) all_patients = append(all_patients, 
-                                                           future_arrival_patients)  
+                                                           future_arrival_patients)
 
 
 all_patients = run_monte_carlo_per_patient(all_patients, 
@@ -148,47 +152,46 @@ all_patients = run_monte_carlo_per_patient(all_patients,
 
 # Plot the number of hospitalized patients per day 
 
-The plot below displays the mean number of hospitalized patients, over all monte carlo simulations. 
+The plots below displays the mean number of hospitalized patients, over all monte carlo simulations.
 
-For each day, the range between the lower and upper quantiles is filled in red. In the example below we display the 25 and 75 percentiles. 
+For each day, we plot:
+
+* mean number of hospitalized patients
+* 25 to 75 quantiles of number of hospitalized patients (red fill)
+* 10 to 90 quantiles of number of hospitalized patients (orange fill)
+
 
 ```{r echo=FALSE}
 plot_expected_number_of_patients_each_day(all_patients,
                                           first_date = T,
                                           last_date = T + PREDICT_N_DAYS_AHEAD,
-                                          states_to_include = c(SEVERE, MILD_OR_MODERATE), # all "hospitalized" states
-                                          lower_quantile = 0.25,
-                                          upper_quantile = 0.75)
-
+                                          states_to_include = c(SEVERE, MILD_OR_MODERATE)) # all "hospitalized" states
 ```
 
 
 # Plot the number of patients hospitalized at SEVERE state per day 
 
-The plot below displays the mean number of hospitalized patients **in the SEVERE state** (named Critical in the paper), over all monte carlo simulations. 
-
-For each day, the range between the lower and upper quantiles is filled in red. In the example below we display the 25 and 75 percentiles.
+The plot below is simialr to that above, except it displays the mean number of hospitalized patients **in a Critical state** (`SEVERE`)
 
 ```{r}
 plot_expected_number_of_patients_each_day(all_patients,
                                           first_date = T,
                                           last_date = T + PREDICT_N_DAYS_AHEAD,
-                                          states_to_include = c(SEVERE),
-                                          lower_quantile = 0.25,
-                                          upper_quantile = 0.75)
-
+                                          states_to_include = c(SEVERE))
 ```
 
 
 
 # Expected Number of Deaths
 
+Below you can see the expected proportion of deaths by days since hospitalization. That is, we are counting deaths among all patients 5 days since hospitalization, 10 days hospitalization etc.; averaging over all sampled monte carlo paths.
+
+This analysis includes future arrival patients if `INCLUDE_FUTURE_ARRIVAL_PATIENTS = TRUE`
+
+Note: deaths occuring after `T + PREDICT_N_DAYS_AHEAD` are excluded from the displayed statistics. 
 
 ```{r}
-formattable(construct_expected_deaths_table(all_patients, 
-                                            T, 
-                                            PREDICT_N_DAYS_AHEAD))
+formattable(expected_deaths_by_days_since_hospitalization(all_patients, 
+                                                          T,
+                                                          PREDICT_N_DAYS_AHEAD))
 ```
-
-
-# 
