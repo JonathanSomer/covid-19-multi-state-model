@@ -15,7 +15,7 @@ Transitions between states (such as: "severe" to "death") are modeled using surv
 
 The following examples introduce the model and provide examples for typical usage. We suggest following the examples in order.
 
-Each notebook has a corresponding pre-rendered html file with the same name as the `*.Rmd` file. Reviewing the html files is the fastest way to review the examples and decide if they are useful for your setting.
+Each notebook has a corresponding pre-rendered html file with the same name as the `*.Rmd` file. [Reviewing the html files](https://jonathansomer.github.io/covid-19-multi-state-model/) is the fastest way to review the examples and decide if they are useful for your setting.
 
 ## 1. Introducing The Model
 
