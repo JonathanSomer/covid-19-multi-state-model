@@ -46,6 +46,6 @@ If you do not have access to Covid-19 patient data, you can perform predictions 
   
   * The expected number of deaths over time
   * The expected number of hospitalized patients over time
-  * The expected number of hospitalized severe patients over time
+  * The expected number of hospitalized critical patients over time
   
   The notebook also shows how to include expected future hospitalizations in the estimates.
