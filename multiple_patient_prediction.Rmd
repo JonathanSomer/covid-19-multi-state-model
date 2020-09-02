@@ -184,7 +184,7 @@ plot_expected_number_of_patients_each_day(all_patients,
 
 # Expected Number of Deaths
 
-Below you can see the expected proportion of deaths by days since hospitalization. That is, we are counting deaths among all patients 5 days since hospitalization, 10 days hospitalization etc.; averaging over all sampled monte carlo paths.
+Below you can see the expected number of deaths by days since hospitalization. That is, we are counting deaths among all patients 5 days since hospitalization, 10 days hospitalization etc.; averaging over all sampled monte carlo paths.
 
 This analysis includes future arrival patients if `INCLUDE_FUTURE_ARRIVAL_PATIENTS = TRUE`
 
