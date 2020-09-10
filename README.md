@@ -1,9 +1,10 @@
 # Predicting illness  trajectory and  hospital utilization of COVID-19 hospitalized patients - a nationwide study in Israel
 
+Based on [this paper](https://www.medrxiv.org/content/10.1101/2020.09.04.20185645v1)
 
 ### Authors:
 
-Michael Roimi, Rom Gutman, Jonathan Somer, Asaf Ben Arie, Ido Calman, Arnona Ziv, Danny Eytan, Malka Gorfine & Uri Shalit
+Michael Roimi, Rom Gutman, Jonathan Somer, Asaf Ben Arie, Ido Calman, Yaron Bar-Lavie, Arnona Ziv, Danny Eytan, Malka Gorfine & Uri Shalit
 
 Special credit goes to Malka Gorfine, Asaf Ben Arie and Jonathan Somer for implementation of the model and code used for analysis, as well as setting up this Github repository.
 
