@@ -41,7 +41,7 @@ We shall provide estimates for a 55 year old male hospitalized in a critical con
 
 ### Sex
 
-Either `MALE` of `FEMALE`
+Either `MALE` or `FEMALE`
 
 ```{r}
 sex = MALE
