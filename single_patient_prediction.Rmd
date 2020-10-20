@@ -1,0 +1,202 @@
+---
+title: "Single Patient Prediction"
+output: html_document
+---
+
+
+```{r include=FALSE}
+library(ggplot2)
+
+source('./utils/utils.R')
+source('./utils/single_patient_prediction_utils.R')
+source('./model/israeli_multi_state_competing_risks_model.R')
+library(formattable)
+
+israeli_model = readRDS('cache/israeli_model.Rds')
+bootstrap_models = readRDS('cache/bootstrap_models.Rds')
+
+length(bootstrap_models)
+```
+
+
+# Introduction
+
+This notebook provides a running example of estimating the following values, for a single patient: 
+
+  * probability of death
+  * probability of future visit to critical state
+  * quantiles of predicted time in hospital
+  * quantiles of predicted time in critical state
+  * Cumulative Distribution Function (CDF) for remaining time at hospital
+
+**Note:** In the code, the constants denoting the states are named `MILD`, `MODERATE` and `SEVERE`. In the paper these constants correspond with the states named Moderate, Severe and Critical, respectively.
+
+# Follow These Steps:
+
+## 1. Define Patient Covariates:
+
+We shall provide estimates for a 55 year old male hospitalized in a critical condition. Predictions below are done from time of hospitalization but estimates can be predicted from any time since hospitalization.
+
+
+### Sex
+
+Either `MALE` or `FEMALE`
+
+```{r}
+sex = MALE
+```
+
+### Age (in years)
+
+```{r}
+age = 55
+```
+
+
+### Patient's State at Hospitalization
+
+Denoted as `entry_state`, this can be either MILD, MODERATE or SEVERE.
+
+NOTE: in the paper, these are named MODERATE, SEVERE and CRITICAL respectively.
+
+```{r}
+entry_state = SEVERE
+```
+
+
+### Patient's Current State
+
+For prediction from time of hospitalization this is necessarily the same as entry_state, but if we predict from some time during hospitalization this can be another state.
+
+```{r}
+current_state = SEVERE
+```
+
+
+### Days since hospitalization until entry to current state
+
+Integer number of days since hospitalization until the patient entered the current state
+
+Examples:
+
+ 1. For prediction from day of hospitalization (necessarily from first state) use: 0
+ 
+ 2. If the patient was hospitalized for 10 days, 3 of them spent in the current state, then 7 days have passed since hospitalization until entry to the curent state, use: 7
+
+```{r}
+days_since_hospitalization_until_entry_to_current_state = 0
+```
+
+### Days spent at current state
+
+Integer number of days spent at the current state
+
+Examples:
+
+  1. For prediction from day of hospitalization (necessarily from first state) use: 0
+  
+  2. If patient was hospitalized for 10 days, and is already 3 days in the current state, use: 3
+
+```{r}
+days_at_current_state = 0
+```
+
+From the two definitions above we have:
+
+```{r}
+total_days_since_hospitalization = days_since_hospitalization_until_entry_to_current_state + 
+                                   days_at_current_state
+```
+
+
+### Indicator Variable for Previous Visit to `SEVERE` State:
+
+A binary 0/1 indicator of a **past** visit to the `SEVERE` state (In the paper: "Critical"). 1 indicates there was such a visit. 
+
+Note: if the patient was hospitalized in `SEVERE` state, the indicator should initially be 0, as there was no **past** visit to the `SEVERE` state.
+
+```{r}
+was_severe = 0
+```
+
+
+
+### Construct The Covariates:
+
+```{r}
+covariates = construct_covariates(sex = sex,
+                                  age = age,
+                                  entry_state = entry_state,
+                                  cumulative_time = days_since_hospitalization_until_entry_to_current_state,
+                                  was_severe = was_severe)
+```
+
+
+
+## 2. Decide if you wish to compute confidence intervals 
+
+This notebook computes 95% confidence intervals for the estimates listed above. Intervals are estimated using a weighted bootstrap based on 100 models, i.e 100 models each running 20K monte carlo simulations. This can be relatively slow.
+
+Note: For estimates of the different quantiles of hospitalization time remaining and time remaining in a critical state, in estimates of extreme quantiles, coverage could possibly differ from 95%.
+
+```{r}
+COMPUTE_CONFIDENCE_INTERVALS = TRUE
+```
+
+
+## 3. Set Monte Carlo Paramaters:
+
+
+### Define the number of monte carlo paths to sample:
+
+```{r}
+M_MONTE_CARLO_PATHS = 20*1000 # recommended
+```
+
+
+### Set maximum state transitions
+
+This is used to exclude outlier paths. For instance, this rule can be used to exclude occurences of paths longer than those observed in the data.
+
+```{r}
+MAX_TRANSITIONS = 9 # recommended
+```
+
+
+## 4. Predict:
+
+```{r}
+monte_carlo_runs = israeli_model$run_monte_carlo_simulation(covariates, 
+                                                            to_model_state(current_state), # model uses a merged moderate/mild state
+                                                            current_time = total_days_since_hospitalization,
+                                                            n_random_samples = M_MONTE_CARLO_PATHS,
+                                                            max_transitions = MAX_TRANSITIONS)
+
+estimates =  data.frame(estimate = t(compute_statistics(monte_carlo_runs)))
+
+if (COMPUTE_CONFIDENCE_INTERVALS) {
+  bootstrap_sd = compute_sd_using_bootstrap(bootstrap_models,
+                                            covariates, 
+                                            current_state,
+                                            total_days_since_hospitalization, 
+                                            M_MONTE_CARLO_PATHS, 
+                                            MAX_TRANSITIONS)
+  
+  estimates["Standard Deviation"] = as.numeric(bootstrap_sd)
+  estimates["95%-lower"] = estimates$estimate - 1.96*as.numeric(bootstrap_sd)
+  estimates["95%-upper"] = estimates$estimate + 1.96*as.numeric(bootstrap_sd)
+}
+```
+
+### Predicted Estimates:
+
+```{r}
+formattable(estimates)
+```
+
+### CDF of remaining time in hospital:
+
+```{r}
+plot_cdf_of_remaining_time_in_hospital(monte_carlo_runs)
+```
+
