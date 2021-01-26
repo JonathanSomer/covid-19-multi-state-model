@@ -1,6 +1,6 @@
 # Predicting illness  trajectory and  hospital utilization of COVID-19 hospitalized patients - a nationwide study in Israel
 
-Based on [this paper](https://www.medrxiv.org/content/10.1101/2020.09.04.20185645v1)
+Based on [this paper](https://academic.oup.com/jamia/advance-article/doi/10.1093/jamia/ocab005/6105188?searchresult=1)
 
 ### Authors:
 
