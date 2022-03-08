@@ -18,6 +18,8 @@ The following examples introduce the model and provide examples for typical usag
 
 Each notebook has a corresponding pre-rendered html file with the same name as the `*.Rmd` file. [Reviewing the html files](https://jonathansomer.github.io/covid-19-multi-state-model/) is the fastest way to review the examples and decide if they are useful for your setting.
 
+A Python implementation by Hagai Rossman, Ayya Keshet and Malka Gorfine is also available at: https://hrossman.github.io/pymsm/
+
 ## 1. Introducing The Model
 
 ### [first_example.Rmd](./first_example.Rmd)
